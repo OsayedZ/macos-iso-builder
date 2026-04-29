@@ -47,13 +47,17 @@ jobs:
             REPO=$(echo "$fork" | jq -r '.name')
             CREATED=$(echo "$fork" | jq -r '.created_at')
 
-            RUN_INFO=$(curl --silent --show-error --fail \
-              --retry 5 --retry-delay 2 --retry-max-time 60 --retry-connrefused \
+            RUN_INFO=$(curl --silent --show-error \
+              --retry 3 --retry-delay 2 --retry-max-time 30 --retry-connrefused \
               --connect-timeout 10 --max-time 30 \
               -H "Authorization: Bearer $GH_TOKEN" \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               "https://api.github.com/repos/$OWNER/$REPO/actions/runs?per_page=1&status=success")
+
+            if echo "$RUN_INFO" | jq -e '.message' > /dev/null 2>&1; then
+              continue
+            fi
 
             RUN_ID=$(echo "$RUN_INFO" | jq -r '.workflow_runs[0].id // ""')
             RUN_URL=$(echo "$RUN_INFO" | jq -r '.workflow_runs[0].html_url // "#"')
@@ -62,7 +66,7 @@ jobs:
             ARTIFACT_NAME="N/A"
             if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
               ARTIFACT_NAME=$(curl --silent --show-error \
-                --retry 5 --retry-delay 2 --retry-max-time 60 --retry-connrefused \
+                --retry 3 --retry-delay 2 --retry-max-time 30 --retry-connrefused \
                 --connect-timeout 10 --max-time 30 \
                 -H "Authorization: Bearer $GH_TOKEN" \
                 -H "Accept: application/vnd.github+json" \
