@@ -136,7 +136,7 @@ jobs:
 
   build-recovery-iso:
     needs: preflight
-    if: needs.preflight.outputs._build == 'true'
+    if: always()
     runs-on: macos-latest
     timeout-minutes: 15
 
